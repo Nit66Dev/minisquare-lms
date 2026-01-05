@@ -117,7 +117,7 @@ public partial class NewUser : System.Web.UI.Page
             ob.SubmitChanges();
 
             LM.UserName = f6.Text;
-            LM.Password = f7.Text;
+            LM.Password = SecurityHelper.HashPassword(f7.Text);
             LM.Status = true;
             Label1.ForeColor = System.Drawing.Color.Lime;
             Label1.Text = "User Created Successfully..";

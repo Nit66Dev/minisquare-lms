@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -20,29 +20,52 @@ public partial class login : System.Web.UI.Page
         bool empSTS = true;
         DataClassesDataContext obj = new DataClassesDataContext();
         var data = from a in obj.Login_Masters
-                   where a.UserName == txtUID.Text && a.Password == txtPWD.Text
+                   where a.UserName == txtUID.Text
                    select new
                    {
                        user=a.UserName,
                        pwd=a.Password,
                        sts = a.Status
-                       
+
                    };
+
+        bool isValidPassword = false;
+
         foreach (var d in data)
         {
-            
-            empSTS = d.sts;
-            uid = d.user;
-            pass = d.pwd;
-           
+            string hashedInput = SecurityHelper.HashPassword(txtPWD.Text);
+            bool storedIsHash = SecurityHelper.IsPasswordHash(d.pwd);
+
+            if (storedIsHash)
+            {
+                // If stored is a hash, we MUST match the hashed input
+                if (d.pwd == hashedInput)
+                {
+                    empSTS = d.sts;
+                    uid = d.user;
+                    pass = d.pwd;
+                    isValidPassword = true;
+                }
+            }
+            else
+            {
+                // Legacy plain text check
+                if (d.pwd == txtPWD.Text)
+                {
+                    empSTS = d.sts;
+                    uid = d.user;
+                    pass = d.pwd;
+                    isValidPassword = true;
+                }
+            }
         }
         Session["UserName"]=uid;
-        if (uid == "admin" && pass != "" && empSTS)
+        if (uid == "admin" && isValidPassword && empSTS)
         {
             Response.Redirect("~/Admin/AdminHome.aspx");
         }
 
-         else if (uid != "" && pass != "" && empSTS)
+         else if (uid != "" && isValidPassword && empSTS)
         {
             Response.Redirect("~/Redirect.aspx");
         }
